@@ -1,3 +1,6 @@
+"""
+this file can be used to write to gui instead of the readme file
+"""
 
 import csv
 
