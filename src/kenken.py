@@ -93,7 +93,8 @@ def generate(size):
                 for r in range(size):
                     board[r][c1], board[r][c2] = board[r][c2], board[r][c1]
 
-    board = {(j + 1, i + 1): board[i][j] for i in range(size) for j in range(size)}
+    board = {(j + 1, i + 1): board[i][j]
+             for i in range(size) for j in range(size)}
     uncaged = sorted(board.keys(), key=lambda var: var[1])
     cliques = []
     while uncaged:
@@ -118,18 +119,21 @@ def generate(size):
         elif csize == 2:
             fst, snd = cliques[-1][0], cliques[-1][1]
             if board[fst] / board[snd] > 0 and not board[fst] % board[snd]:
-                operator = "/" # choice("+-*/")
+                operator = "/"  # choice("+-*/")
             else:
-                operator = "-" # choice("+-*")
+                operator = "-"  # choice("+-*")
         else:
             operator = choice("+*")
 
-        target = reduce(operation(operator), [board[cell] for cell in cliques[-1]])
+        target = reduce(operation(operator), [
+                        board[cell] for cell in cliques[-1]])
         cliques[-1] = (tuple(cliques[-1]), operator, int(target))
     return size, cliques
 
 # may not need parse and validate
 # to be moved to a special file
+
+
 def parse(lines):
     """
     Used in order to parse a non-generated / handmade kenken puzzle
@@ -168,29 +172,35 @@ def validate(size, cliques):
         * Check if any member of the clique is mentioned in any other clique
       * Check if the given cliques cover the whole board or not
     """
-    outOfBounds = lambda xy: xy[0] < 1 or xy[0] > size or xy[1] < 1 or xy[1] > size
+    def outOfBounds(
+        xy): return xy[0] < 1 or xy[0] > size or xy[1] < 1 or xy[1] > size
     mentioned = set()
     for i in range(len(cliques)):
         members, operator, target = cliques[i]
         cliques[i] = (tuple(set(members)), operator, target)
         members, operator, target = cliques[i]
         if operator not in "+-*/.":
-            print("Operation", operator, "of clique", cliques[i], "is unacceptable", file=stderr)
+            print("Operation", operator, "of clique",
+                  cliques[i], "is unacceptable", file=stderr)
             exit(1)
         problematic = list(filter(outOfBounds, members))
         if problematic:
-            print("Members", problematic, "of clique", cliques[i], "are out of bounds", file=stderr)
+            print("Members", problematic, "of clique",
+                  cliques[i], "are out of bounds", file=stderr)
             exit(2)
         problematic = mentioned.intersection(set(members))
         if problematic:
-            print("Members", problematic, "of clique", cliques[i], "are cross referenced", file=stderr)
+            print("Members", problematic, "of clique",
+                  cliques[i], "are cross referenced", file=stderr)
             exit(3)
         mentioned.update(set(members))
 
     indexes = range(1, size + 1)
-    problematic = set([(x, y) for y in indexes for x in indexes]).difference(mentioned)
+    problematic = set([(x, y)
+                      for y in indexes for x in indexes]).difference(mentioned)
     if problematic:
-        print("Positions", problematic, "were not mentioned in any clique", file=stderr)
+        print("Positions", problematic,
+              "were not mentioned in any clique", file=stderr)
         exit(4)
 
 
@@ -257,8 +267,11 @@ def gdomains(size, cliques):
     domains = {}
     for clique in cliques:
         members, operator, target = clique
-        domains[members] = list(product(range(1, size + 1), repeat=len(members)))
-        qualifies = lambda values: not conflicting(members, values, members, values) and satisfies(values, operation(operator), target)
+        domains[members] = list(
+            product(range(1, size + 1), repeat=len(members)))
+
+        def qualifies(values): return not conflicting(
+            members, values, members, values) and satisfies(values, operation(operator), target)
         domains[members] = list(filter(qualifies, domains[members]))
     return domains
 
@@ -274,7 +287,7 @@ def gneighbors(cliques):
     neighbors = {}
     for members, _, _ in cliques:
         neighbors[members] = []
-    
+
     for A, _, _ in cliques:
         for B, _, _ in cliques:
             if A != B and B not in neighbors[A]:
@@ -311,7 +324,7 @@ class Kenken(csp.CSP):
         self.meta = {}
         for members, operator, target in cliques:
             self.meta[members] = (operator, target)
-            self.padding = max(self.padding, len(str(target)))        
+            self.padding = max(self.padding, len(str(target)))
 
     # def nconflicts(self, var, val, assignment):
 
@@ -345,11 +358,14 @@ class Kenken(csp.CSP):
                     for member in members:
                         atomic[member] = None
         else:
-            atomic = {member:None for members in self.variables for member in members}
+            atomic = {
+                member: None for members in self.variables for member in members}
 
-        atomic = sorted(atomic.items(), key=lambda item: item[0][1] * self.size + item[0][0])
-        padding = lambda c, offset: (c * (self.padding + 2 - offset))
-        embrace = lambda inner, beg, end: beg + inner + end
+        atomic = sorted(
+            atomic.items(), key=lambda item: item[0][1] * self.size + item[0][0])
+
+        def padding(c, offset): return (c * (self.padding + 2 - offset))
+        def embrace(inner, beg, end): return beg + inner + end
         mentioned = set()
 
         # why not used lambda?
@@ -361,13 +377,15 @@ class Kenken(csp.CSP):
 
             return ""
 
-        fit = lambda word: padding(" ", len(word)) + word + padding(" ", 0)
+        def fit(word): return padding(" ", len(word)) + word + padding(" ", 0)
         cpadding = embrace(2 * padding(" ", 0), "|", "") * self.size + "|"
 
         # why not used lambda?
         def show(row):
-            rpadding = "".join(["|" + fit(meta(item[0])) for item in row]) + "|"
-            data = "".join(["|" + fit(str(item[1] if item[1] else "")) for item in row]) + "|"
+            rpadding = "".join(["|" + fit(meta(item[0]))
+                               for item in row]) + "|"
+            data = "".join(["|" + fit(str(item[1] if item[1] else ""))
+                           for item in row]) + "|"
             print(rpadding, data, cpadding, sep="\n")
 
         rpadding = embrace(2 * padding("-", 0), "+", "") * self.size + "+"
@@ -376,7 +394,6 @@ class Kenken(csp.CSP):
             show(list(filter(lambda item: item[0][1] == i, atomic)))
             print(rpadding)
 
-    # why not used lambda?
     def info(self):
         """
         Print debugging info
@@ -396,18 +413,18 @@ class Kenken(csp.CSP):
 
 
 def benchmark(kenken, algorithm):
-        """
-        Used in order to benchmark the given algorithm in terms of
-          * The number of nodes it visits
-          * The number of constraint checks it performs
-          * The number of assignments it performs
-          * The completion time
-        """
-        kenken.checks = kenken.nassigns = 0
-        dt = time()
-        assignment = algorithm(kenken)
-        dt = time() - dt
-        return assignment, (kenken.checks, kenken.nassigns, dt)
+    """
+    Used in order to benchmark the given algorithm in terms of
+      * The number of nodes it visits
+      * The number of constraint checks it performs
+      * The number of assignments it performs
+      * The completion time
+    """
+    kenken.checks = kenken.nassigns = 0
+    dt = time()
+    assignment = algorithm(kenken)
+    dt = time() - dt
+    return assignment, (kenken.checks, kenken.nassigns, dt)
 
 
 def gather(iterations, out):
@@ -424,12 +441,21 @@ def gather(iterations, out):
       * Save the results into a csv file
     """
     # getting the functions into vars
-    bt         = lambda ken: csp.backtracking_search(ken) # vannila backtracking
-    bt_mrv     = lambda ken: csp.backtracking_search(ken, select_unassigned_variable=csp.mrv) # minimum remaining value heuristic
-    fc         = lambda ken: csp.backtracking_search(ken, inference=csp.forward_checking) # forward checking
-    fc_mrv     = lambda ken: csp.backtracking_search(ken, inference=csp.forward_checking, select_unassigned_variable=csp.mrv)
-    mac        = lambda ken: csp.backtracking_search(ken, inference=csp.mac) # maintain arc consistency
-    mconflicts = lambda ken: csp.min_conflicts(ken)
+    def bt(ken): return csp.backtracking_search(ken)  # vannila backtracking
+
+    def fc(ken): return csp.backtracking_search(
+        ken, inference=csp.forward_checking)  # forward checking (backtracking + forward checking)
+
+    def mac(ken): return csp.backtracking_search(
+        ken, inference=csp.mac)  # maintain arc consistency (backtracking + arc consistency)
+
+    # may not be used
+    def bt_mrv(ken): return csp.backtracking_search(
+        ken, select_unassigned_variable=csp.mrv)  # minimum remaining value heuristic
+    def fc_mrv(ken): return csp.backtracking_search(
+        ken, inference=csp.forward_checking, select_unassigned_variable=csp.mrv)
+
+    def mconflicts(ken): return csp.min_conflicts(ken)
 
     # storing the functions into a single object
     algorithms = {
@@ -443,26 +469,31 @@ def gather(iterations, out):
 
     with open(out, "w+") as file:
         out = writer(file)
-        out.writerow(["Algorithm", "Size", "Result", "Constraint checks", "Assignments", "Completion time"])
-        print("wrote head")
+        out.writerow(["Algorithm", "Size", "Result",
+                     "Constraint checks", "Assignments", "Completion time"])
+        # print("wrote head") # for debugging
         for name, algorithm in algorithms.items():
-            for size in range(3, 5): # 3, 10
+            for size in range(3, 5):  # 3, 10
                 checks, assignments, dt = (0, 0, 0)
                 for iteration in range(1, iterations + 1):
                     size, cliques = generate(size)
-                    assignment, data = benchmark(Kenken(size, cliques), algorithm)
-                    print("algorithm =",  name, "size =", size, "iteration =", iteration, "result =", "Success" if assignment else "Failure", file=stderr)
-                    checks      += data[0] / iterations
+                    assignment, data = benchmark(
+                        Kenken(size, cliques), algorithm)
+                    print("algorithm =",  name, "size =", size, "iteration =", iteration,
+                          "result =", "Success" if assignment else "Failure", file=stderr)
+                    checks += data[0] / iterations
                     assignments += data[1] / iterations
-                    dt          += data[2] / iterations
+                    dt += data[2] / iterations
                 out.writerow([name, size, checks, assignments, dt])
+
 
 if __name__ == "__main__":
 
-    gather(3, "kenken.csv") # works
+    gather(3, "kenken.csv")  # works
 
     # you may add the utility to write this as a string into
     # a file to save or load the game
+    # this can be used as the template of the object bassed to the GUI
     example = \
         "6\n"\
         "(((1, 1), (1, 2)), '+', 11)\n"\

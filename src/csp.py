@@ -1,11 +1,9 @@
-"""CSP (Constraint Satisfaction Problems) problems and solvers. (Chapter 6)."""
+"""CSP (Constraint Satisfaction Problems) problems and solvers. (Chapter 5)."""
 
 from utils import argmin_random_tie, count, first
 import search
-
 from collections import defaultdict
 from functools import reduce
-
 import itertools
 import re
 import random
@@ -116,7 +114,8 @@ class CSP(search.Problem):
         """Make sure we can prune values from domains. (We want to pay
         for this only if we use it.)"""
         if self.curr_domains is None:
-            self.curr_domains = {v: list(self.domains[v]) for v in self.variables}
+            self.curr_domains = {
+                v: list(self.domains[v]) for v in self.variables}
 
     def suppose(self, var, value):
         """Start accumulating inferences from assuming var=value."""
@@ -158,15 +157,19 @@ class CSP(search.Problem):
 
 
 def AC3(csp, queue=None, removals=None):
-    """[Figure 6.3]"""
+    """[Figure 5.3] in the book"""
     if queue is None:
+        # for each variable Xi and all its neighbors Xk
         queue = [(Xi, Xk) for Xi in csp.variables for Xk in csp.neighbors[Xi]]
-    csp.support_pruning()
-    while queue:
+    csp.support_pruning()  # pruning can be done now
+    while queue:  # the queue of arcs where every edge is added twice
         (Xi, Xj) = queue.pop()
         if revise(csp, Xi, Xj, removals):
+            # if the domain of Xi is empty then no solution exist
             if not csp.curr_domains[Xi]:
                 return False
+            # edges in the opposite direction needs to be modified
+            # to check if they are still consistent with the new domain of Xi
             for Xk in csp.neighbors[Xi]:
                 if Xk != Xj:
                     queue.append((Xk, Xi))
@@ -176,6 +179,7 @@ def AC3(csp, queue=None, removals=None):
 def revise(csp, Xi, Xj, removals):
     """Return true if we remove a value."""
     revised = False
+    # for each value in the domain of Xi
     for x in csp.curr_domains[Xi][:]:
         # If Xi=x conflicts with Xj=y for every possible y, eliminate Xi=x
         if all(not csp.constraints(Xi, x, Xj, y) for y in csp.curr_domains[Xj]):
@@ -252,7 +256,7 @@ def backtracking_search(csp,
                         select_unassigned_variable=first_unassigned_variable,
                         order_domain_values=unordered_domain_values,
                         inference=no_inference):
-    """[Figure 6.5]"""
+    """[Figure 5.5]"""
 
     def backtrack(assignment):
         if len(assignment) == len(csp.variables):
@@ -368,13 +372,13 @@ def make_arc_consistent(Xj, Xk, csp):
     by removing the possible values of Xj that cause inconsistencies."""
     #csp.curr_domains[Xj] = []
     for val1 in csp.domains[Xj]:
-        keep = False # Keep or remove val1
+        keep = False  # Keep or remove val1
         for val2 in csp.domains[Xk]:
             if csp.constraints(Xj, val1, Xk, val2):
                 # Found a consistent assignment for val1, keep it
                 keep = True
                 break
-        
+
         if not keep:
             # Remove val1
             csp.prune(Xj, val1, None)
@@ -637,10 +641,12 @@ class Sudoku(CSP):
                    for var, ch in zip(flatten(self.rows), squares)}
         for _ in squares:
             raise ValueError("Not a Sudoku grid", grid)  # Too many squares
-        CSP.__init__(self, None, domains, self.neighbors, different_values_constraint)
+        CSP.__init__(self, None, domains, self.neighbors,
+                     different_values_constraint)
 
     def display(self, assignment):
-        def show_box(box): return [' '.join(map(show_cell, row)) for row in box]
+        def show_box(box): return [' '.join(
+            map(show_cell, row)) for row in box]
 
         def show_cell(cell): return str(assignment.get(cell, '.'))
 
