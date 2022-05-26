@@ -246,6 +246,8 @@ def mac(csp, var, value, assignment, removals):
 
 
 # The search, proper
+# keeps only a single representation of a state (assigment)
+# and alters that representation rather than creating new ones
 def backtracking_search(csp,
                         select_unassigned_variable=first_unassigned_variable,
                         order_domain_values=unordered_domain_values,
@@ -253,11 +255,14 @@ def backtracking_search(csp,
     """[Figure 5.5]"""
 
     def backtrack(assignment):
-        if len(assignment) == len(csp.variables):
+        if len(assignment) == len(csp.variables):  # if all vars are assigned
             return assignment
+        # select var according to
         var = select_unassigned_variable(assignment, csp)
         for value in order_domain_values(var, assignment, csp):
+            # if the number of other variables that conflict with var=val is zero
             if 0 == csp.nconflicts(var, value, assignment):
+                # assign a value to the variable
                 csp.assign(var, value, assignment)
                 removals = csp.suppose(var, value)
                 if inference(csp, var, value, assignment, removals):
@@ -265,9 +270,11 @@ def backtracking_search(csp,
                     if result is not None:
                         return result
                 csp.restore(removals)
+        # if all values failed,
         csp.unassign(var, assignment)
-        return None
+        return None  # failure
 
-    result = backtrack({})
+    result = backtrack({})  # the assigment of vars is empty initially
+    # check no solution or full solution
     assert result is None or csp.goal_test(result)
     return result

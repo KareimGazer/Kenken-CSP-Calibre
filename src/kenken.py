@@ -457,6 +457,9 @@ def gather(iterations, out):
 
     def mconflicts(ken): return csp.min_conflicts(ken)
 
+    # Bonus to be added
+    # use heuristics in backtrack,FC, and MAC
+
     # storing the functions into a single object
     algorithms = {
         "BT": bt,
