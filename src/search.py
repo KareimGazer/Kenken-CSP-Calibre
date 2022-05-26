@@ -26,9 +26,8 @@ class Problem(object):
     of your subclass and solve them with the various search functions."""
 
     def __init__(self, initial, goal=None):
-        """The constructor specifies the initial state, and possibly a goal
-        state, if there is a unique goal. Your subclass's constructor can add
-        other arguments."""
+        """specifies the initial state, and possibly a goal
+        state, if there is a unique goal."""
         self.initial = initial
         self.goal = goal
 
