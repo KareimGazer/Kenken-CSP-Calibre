@@ -1,4 +1,3 @@
-
 import csp
 
 # @ <component>: <usage>
@@ -82,7 +81,7 @@ def generate(size):
         * Continue until the 'uncaged' set is empty i.e. there is no cell belonging
           to no clique
     """
-
+    # returns indicies
     board = [[((i + j) % size) + 1 for i in range(size)] for j in range(size)]
     for _ in range(size):
         shuffle(board)
@@ -130,15 +129,15 @@ def generate(size):
         cliques[-1] = (tuple(cliques[-1]), operator, int(target))
     return size, cliques
 
+
 # may not need parse and validate
 # to be moved to a special file
-
-
 def parse(lines):
     """
     Used in order to parse a non-generated / handmade kenken puzzle
     given in string / list of strings format
     """
+    # check if the input is string
     if isinstance(lines, str):
         lines = lines.splitlines(True)
 
@@ -148,11 +147,13 @@ def parse(lines):
     except:
         print("Unable to determine board size [", content, "]", file=stderr)
         exit(11)
+
     cliques = []
     for line in lines[1:]:
-        content = line[:-1]
+        content = line[:-1]  # line string
         if content:
             try:
+                # evaluate makes it possible to index tuples,operators, and attributes as objects
                 clique = eval(content)
                 cliques.append(clique)
             except:
@@ -162,6 +163,7 @@ def parse(lines):
     return size, cliques
 
 
+# it could be a method in kenken class but it's global for global usage
 def validate(size, cliques):
     """
     Validate the integrity of the input as a kenken board
@@ -326,12 +328,6 @@ class Kenken(csp.CSP):
             self.meta[members] = (operator, target)
             self.padding = max(self.padding, len(str(target)))
 
-    # def nconflicts(self, var, val, assignment):
-
-    # def assign(self, var, val, assignment):
-
-    # def unassign(self, var, assignment):
-
     def constraint(self, A, a, B, b):
         """
         Any two variables satisfy the constraint if they are the same
@@ -490,7 +486,7 @@ def gather(iterations, out):
 
 if __name__ == "__main__":
 
-    gather(3, "kenken.csv")  # works
+    # gather(3, "kenken.csv")  # works
 
     # you may add the utility to write this as a string into
     # a file to save or load the game
@@ -513,8 +509,16 @@ if __name__ == "__main__":
         "(((4, 6), (5, 6)), '/', 2)\n"\
         "(((6, 5), (6, 6)), '+', 9)\n"
 
-    # size, cliques = parse(example) # parse operate on text and may not be needed
-    # size, cliques = parse(list(stdin))
+    # parse operate on text and may not be needed
+    # size, cliques = parse(example)
+    # size, cliques = parse(list(stdin)) # used for interactive input
     # ken = Kenken(size, cliques)
     # assignment = csp.backtracking_search(ken)
+    # print(assignment)
     # ken.display(assignment)
+
+    size, cliques = generate(3)
+    ken = Kenken(size, cliques)
+    assignment = csp.backtracking_search(ken)
+    print(assignment)  # (col, row)
+    ken.display(assignment)
