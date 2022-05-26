@@ -152,10 +152,9 @@ class CSP(search.Problem):
         return [var for var in self.variables
                 if self.nconflicts(var, current[var], current) > 0]
 
+
 # ______________________________________________________________________________
 # Constraint Propagation with AC-3
-
-
 def AC3(csp, queue=None, removals=None):
     """[Figure 5.3] in the book"""
     if queue is None:
@@ -187,12 +186,11 @@ def revise(csp, Xi, Xj, removals):
             revised = True
     return revised
 
+
 # ______________________________________________________________________________
 # CSP Backtracking Search
 
 # Variable ordering
-
-
 def first_unassigned_variable(assignment, csp):
     """The default variable order."""
     return first([var for var in csp.variables if var not in assignment])
@@ -212,9 +210,8 @@ def num_legal_values(csp, var, assignment):
         return count(csp.nconflicts(var, val, assignment) == 0
                      for val in csp.domains[var])
 
+
 # Value ordering
-
-
 def unordered_domain_values(var, assignment, csp):
     """The default value order."""
     return csp.choices(var)
@@ -222,12 +219,10 @@ def unordered_domain_values(var, assignment, csp):
 
 def lcv(var, assignment, csp):
     """Least-constraining-values heuristic."""
-    return sorted(csp.choices(var),
-                  key=lambda val: csp.nconflicts(var, val, assignment))
+    return sorted(csp.choices(var), key=lambda val: csp.nconflicts(var, val, assignment))
+
 
 # Inference
-
-
 def no_inference(csp, var, value, assignment, removals):
     return True
 
@@ -249,9 +244,8 @@ def mac(csp, var, value, assignment, removals):
     """Maintain arc consistency."""
     return AC3(csp, [(X, var) for X in csp.neighbors[var]], removals)
 
+
 # The search, proper
-
-
 def backtracking_search(csp,
                         select_unassigned_variable=first_unassigned_variable,
                         order_domain_values=unordered_domain_values,
@@ -277,31 +271,3 @@ def backtracking_search(csp,
     result = backtrack({})
     assert result is None or csp.goal_test(result)
     return result
-
-# ______________________________________________________________________________
-# Min-conflicts hillclimbing search for CSPs
-
-
-def min_conflicts(csp, max_steps=100000):
-    """Solve a CSP by stochastic hillclimbing on the number of conflicts."""
-    # Generate a complete assignment for all variables (probably with conflicts)
-    csp.current = current = {}
-    for var in csp.variables:
-        val = min_conflicts_value(csp, var, current)
-        csp.assign(var, val, current)
-    # Now repeatedly choose a random conflicted variable and change it
-    for i in range(max_steps):
-        conflicted = csp.conflicted_vars(current)
-        if not conflicted:
-            return current
-        var = random.choice(conflicted)
-        val = min_conflicts_value(csp, var, current)
-        csp.assign(var, val, current)
-    return None
-
-
-def min_conflicts_value(csp, var, current):
-    """Return the value that will give var the least number of conflicts.
-    If there is a tie, choose at random."""
-    return argmin_random_tie(csp.domains[var],
-                             key=lambda val: csp.nconflicts(var, val, current))
