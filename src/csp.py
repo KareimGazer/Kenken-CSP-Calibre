@@ -228,7 +228,9 @@ def no_inference(csp, var, value, assignment, removals):
 
 
 def forward_checking(csp, var, value, assignment, removals):
-    """Prune neighbor values inconsistent with var=value."""
+    """Prune neighbor values inconsistent with var=value.
+    for each unassigned variable Y that is connected to X by a constraint,
+    delete from Y’s domain any value that is inconsistent with the value chosen for X."""
     csp.support_pruning()
     for B in csp.neighbors[var]:
         if B not in assignment:
@@ -241,18 +243,22 @@ def forward_checking(csp, var, value, assignment, removals):
 
 
 def mac(csp, var, value, assignment, removals):
-    """Maintain arc consistency."""
+    """Maintain arc consistency.
+    instead of a queue of all arcs in the CSP, we start with only the arcs (Xj,Xi)
+    for all Xj that are unassigned variables that are neighbors of Xi.
+    From there, AC-3 does constraint propagation in the usual way,
+    and if any variable has its domain reduced to the empty set,
+    the call to AC-3 fails and we know to backtrack immediately"""
     return AC3(csp, [(X, var) for X in csp.neighbors[var]], removals)
 
 
-# The search, proper
-# keeps only a single representation of a state (assigment)
-# and alters that representation rather than creating new ones
 def backtracking_search(csp,
                         select_unassigned_variable=first_unassigned_variable,
                         order_domain_values=unordered_domain_values,
                         inference=no_inference):
-    """[Figure 5.5]"""
+    """The search, proper
+    keeps only a single representation of a state (assigment)
+    and alters that representation rather than creating new ones."""
 
     def backtrack(assignment):
         if len(assignment) == len(csp.variables):  # if all vars are assigned
