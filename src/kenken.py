@@ -452,10 +452,9 @@ def gather(iterations, out):
     # may not be used
     def bt_mrv(ken): return csp.backtracking_search(
         ken, select_unassigned_variable=csp.mrv)  # minimum remaining value heuristic
+
     def fc_mrv(ken): return csp.backtracking_search(
         ken, inference=csp.forward_checking, select_unassigned_variable=csp.mrv)
-
-    def mconflicts(ken): return csp.min_conflicts(ken)
 
     # Bonus to be added
     # use heuristics in backtrack,FC, and MAC
@@ -466,8 +465,7 @@ def gather(iterations, out):
         "BT+MRV": bt_mrv,
         "FC": fc,
         "FC+MRV": fc_mrv,
-        "MAC": mac,
-        "MIN_CONFLICTS": mconflicts
+        "MAC": mac
     }
 
     with open(out, "w+") as file:
