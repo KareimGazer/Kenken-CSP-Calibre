@@ -1,27 +1,10 @@
 import csp
-
-# @ <component>: <usage>
-
-# @ stderr: reporting errors
-# @ stdin: receiving input
 from sys import stderr, stdin
-
-# @ product: creation of the variables' domains
-# @ permutations: determine the satisfiability of an operation
 from itertools import product, permutations
-
-# @ reduce: determine the result of an operation
 from functools import reduce
-
-# @ seed: seed the pseudorandom number generator
-# @ random, shuffle, randint, choice: generate a random kenken puzzle
 from random import seed, random, shuffle, randint, choice
-
-# @ time: benchmarking
 from time import time
-
-# @ writer: output benchmarking data in a csv format
-from csv import writer
+import csv
 
 
 def operation(operator):
@@ -466,8 +449,8 @@ def gather_info(iterations, out_file, max_board_size):
         "MAC": mac
     }
 
-    with open(out_file, "w+") as file:
-        out_writer = writer(file)
+    with open(out_file, "w+") as csvfile:
+        out_writer = csv.writer(csvfile)
         out_writer.writerow(["Algorithm Name", "Size", "Constraint checks",
                              "no. of Assignments", "Running time"])
         for name, algorithm in algorithms.items():
