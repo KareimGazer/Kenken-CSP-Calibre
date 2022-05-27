@@ -1,12 +1,9 @@
-"""CSP (Constraint Satisfaction Problems) problems and solvers. (Chapter 5)."""
+"""CSP (Constraint Satisfaction Problems) some imports are removed"""
 
 from utils import argmin_random_tie, count, first
 import search
 from collections import defaultdict
 from functools import reduce
-import itertools
-import re
-import random
 
 
 class CSP(search.Problem):
@@ -207,8 +204,7 @@ def num_legal_values(csp, var, assignment):
     if csp.curr_domains:
         return len(csp.curr_domains[var])
     else:
-        return count(csp.nconflicts(var, val, assignment) == 0
-                     for val in csp.domains[var])
+        return count(csp.nconflicts(var, val, assignment) == 0 for val in csp.domains[var])
 
 
 # Value ordering

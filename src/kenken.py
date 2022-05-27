@@ -319,7 +319,7 @@ class Kenken(csp.CSP):
         csp.CSP.__init__(self, variables, domains, neighbors, self.constraint)
         self.size = size
 
-        # Used in benchmarking
+        # Used in assessing performance
         self.checks = 0
         # Used in displaying
         self.padding = 0
@@ -408,34 +408,36 @@ class Kenken(csp.CSP):
             print("neighbors[", var, "] =", self.neighbors[var])
 
 
-def benchmark(kenken, algorithm):
-    """
-    Used in order to benchmark the given algorithm in terms of
-      * The number of nodes it visits
-      * The number of constraint checks it performs
-      * The number of assignments it performs
-      * The completion time
-    """
-    kenken.checks = kenken.nassigns = 0
-    dt = time()
-    assignment = algorithm(kenken)
-    dt = time() - dt
-    return assignment, (kenken.checks, kenken.nassigns, dt)
+def assess_performance(kenken, algorithm):
+    """Used in order to assess the performance of the given algorithm in terms of
+        * The number of nodes it visits
+        * The number of constraint checks it performs
+        * The number of assignments it performs
+        * The completion time
+        Parameters:
+          * kenken: kenken puzzel object
+          * algorithm: the algorithm to solve the puzzel"""
+    kenken.checks, kenken.nassigns = 0, 0
+    initial_time = time()
+    algorithm(kenken)
+    final_time = time()
+    elapsed_time = final_time - initial_time
+    return kenken.checks, kenken.nassigns, elapsed_time
 
 
-def gather(iterations, out):
-    """
-    Benchmark each one of the following algorithms for various kenken puzzles
-
+def gather_info(iterations, out_file, max_board_size):
+    """Benchmark each one of the following algorithms for various kenken puzzles
       * For every one of the following algorithms
        * For every possible size of a kenken board
          * Create 'iterations' random kenken puzzles of the current size
            and evaluate the algorithm on each one of them in order to get
            statistically sound data. Then calculate the average evaluation
            of the algorithm for the current size.
-
       * Save the results into a csv file
-    """
+      Parameters:
+          * iterations: number of iterations to average over
+          * out_file: the location of the outputfile
+          * max_board_size: max board size to run test on"""
     # getting the functions into vars
     def bt(ken): return csp.backtracking_search(ken)  # vannila backtracking
 
@@ -464,61 +466,20 @@ def gather(iterations, out):
         "MAC": mac
     }
 
-    with open(out, "w+") as file:
-        out = writer(file)
-        out.writerow(["Algorithm", "Size", "Result",
-                     "Constraint checks", "Assignments", "Completion time"])
-        # print("wrote head") # for debugging
+    with open(out_file, "w+") as file:
+        out_writer = writer(file)
+        out_writer.writerow(["Algorithm Name", "Size", "Constraint checks",
+                             "no. of Assignments", "Running time"])
         for name, algorithm in algorithms.items():
-            for size in range(3, 5):  # 3, 10
-                checks, assignments, dt = (0, 0, 0)
+            for size in range(3, max_board_size+1):
+                average_constraint_checks, average_assignments_num, average_elapsed_time = 0, 0, 0
                 for iteration in range(1, iterations + 1):
                     size, cliques = generate(size)
-                    assignment, data = benchmark(
-                        Kenken(size, cliques), algorithm)
-                    print("algorithm =",  name, "size =", size, "iteration =", iteration,
-                          "result =", "Success" if assignment else "Failure", file=stderr)
-                    checks += data[0] / iterations
-                    assignments += data[1] / iterations
-                    dt += data[2] / iterations
-                out.writerow([name, size, checks, assignments, dt])
-
-
-if __name__ == "__main__":
-
-    # gather(3, "kenken.csv")  # works
-
-    # you may add the utility to write this as a string into
-    # a file to save or load the game
-    # this can be used as the template of the object bassed to the GUI
-    example = \
-        "6\n"\
-        "(((1, 1), (1, 2)), '+', 11)\n"\
-        "(((2, 1), (3, 1)), '/', 2)\n"\
-        "(((2, 2), (3, 2)), '-', 3)\n"\
-        "(((4, 1), (4, 2)), '*', 20)\n"\
-        "(((5, 1), (6, 1), (6, 2), (6, 3)), '*', 6)\n"\
-        "(((5, 2), (5, 3)), '/', 3)\n"\
-        "(((1, 3), (1, 4), (2, 3), (2, 4)), '*', 240)\n"\
-        "(((3, 3), (4, 3)), '*', 6)\n"\
-        "(((5, 4), (6, 4)), '*', 30)\n"\
-        "(((1, 5), (2, 5)), '*', 6)\n"\
-        "(((3, 4), (3, 5)), '*', 6)\n"\
-        "(((4, 4), (4, 5), (5, 5)), '+', 7)\n"\
-        "(((1, 6), (2, 6), (3, 6)), '+', 8)\n"\
-        "(((4, 6), (5, 6)), '/', 2)\n"\
-        "(((6, 5), (6, 6)), '+', 9)\n"
-
-    # parse operate on text and may not be needed
-    # size, cliques = parse(example)
-    # size, cliques = parse(list(stdin)) # used for interactive input
-    # ken = Kenken(size, cliques)
-    # assignment = csp.backtracking_search(ken)
-    # print(assignment)
-    # ken.display(assignment)
-
-    size, cliques = generate(3)
-    ken = Kenken(size, cliques)
-    assignment = csp.backtracking_search(ken)
-    print(assignment)  # (col, row)
-    ken.display(assignment)
+                    kenken_puzzle = Kenken(size, cliques)
+                    constraint_checks, assigments_num, elapsed_time = assess_performance(
+                        kenken_puzzle, algorithm)
+                    average_constraint_checks += constraint_checks / iterations
+                    average_assignments_num += assigments_num / iterations
+                    average_elapsed_time += elapsed_time / iterations
+                out_writer.writerow(
+                    [name, size, average_constraint_checks, average_assignments_num, average_elapsed_time])
