@@ -449,7 +449,7 @@ def gather_info(iterations, out_file, max_board_size):
         "MAC": mac
     }
 
-    with open(out_file, "w+") as csvfile:
+    with open(out_file, "w", newline='') as csvfile:
         out_writer = csv.writer(csvfile)
         out_writer.writerow(["Algorithm Name", "Size", "Constraint checks",
                              "no. of Assignments", "Running time"])
@@ -465,4 +465,4 @@ def gather_info(iterations, out_file, max_board_size):
                     average_assignments_num += assigments_num / iterations
                     average_elapsed_time += elapsed_time / iterations
                 out_writer.writerow(
-                    [name, size, average_constraint_checks, average_assignments_num, average_elapsed_time])
+                    [name, size, round(average_constraint_checks), round(average_assignments_num), round(average_elapsed_time, 4)])
