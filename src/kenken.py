@@ -408,6 +408,42 @@ def assess_performance(kenken, algorithm):
     return kenken.checks, kenken.nassigns, elapsed_time
 
 
+def get_algorithm(is_mrv, is_lcv, algo):
+    unassigned_variable_selection = None
+    domain_values_order = None
+    algorithm = None
+
+    if is_mrv:
+        unassigned_variable_selection = csp.mrv
+    else:
+        unassigned_variable_selection = csp.first_unassigned_variable
+    if is_lcv:
+        domain_values_order = csp.lcv
+    else:
+        domain_values_order = csp.unordered_domain_values
+
+    # vannila backtracking
+    if algo == "BT":
+        def bt(ken): return csp.backtracking_search(ken,
+                                                    select_unassigned_variable=unassigned_variable_selection,
+                                                    order_domain_values=domain_values_order,
+                                                    inference=csp.no_inference)
+        algorithm = bt
+    elif algo == "FC":
+        # forward checking (backtracking + forward checking)
+        def fc(ken): return csp.backtracking_search(ken, select_unassigned_variable=unassigned_variable_selection,
+                                                    order_domain_values=domain_values_order, inference=csp.forward_checking)
+        algorithm = fc
+
+    elif "MAC":
+        # maintain arc consistency (backtracking + arc consistency)
+        def mac(ken): return csp.backtracking_search(ken, select_unassigned_variable=unassigned_variable_selection,
+                                                     order_domain_values=domain_values_order, inference=csp.mac)
+        algorithm = mac
+
+    return algorithm
+
+
 def configure_algorithms(is_mrv, is_lcv, is_BT, is_FC, is_MAC):
     unassigned_variable_selection = None
     domain_values_order = None

@@ -3,7 +3,7 @@ import tkinter as tk                # python 3
 from tkinter import font as tkfont  # python 3
 from tkinter import filedialog, messagebox, ttk
 import csv
-from turtle import width
+import csp
 import kenken
 
 
@@ -73,7 +73,7 @@ class Game(tk.Frame):
         gen_button.place(height=50, width=150, rely=0.65, relx=0.15)
 
         sol_button = tk.Button(control_frame, text="Solve Puzzel",
-                               command=lambda: self.print_info())
+                               command=lambda: self.solve())
         sol_button.place(height=50, width=150, rely=0.65, relx=0.50)
 
     def draw_canvas(self):
@@ -91,7 +91,35 @@ class Game(tk.Frame):
                     x1, y1, x2, y2, fill="white", tags="rect", outline='gray')
                 # indexed the same way as kenken
                 self.cells[column, row] = [x1, y1, x2, y2]
-                self.canvas.create_text((x1, y1), text="A")
+        self.size, self.cliques = kenken.generate(self.rows)
+
+        for clique in self.cliques:
+            elements = clique[0]
+            operation = clique[1]
+            limit = clique[2]
+            for element in elements:
+                x1, y1, x2, y2 = self.cells[element[0]-1, element[1]-1]
+                # . operation may mean written cell
+                if operation != '.':
+                    self.canvas.create_text(
+                        (x1+25, y1+15), text=str(limit)+' '+operation)
+                else:
+                    self.canvas.create_text((x1+25, y1+15), text=str(limit))
+
+    def solve(self):
+        kenken_puzzel = kenken.Kenken(self.size, self.cliques)
+        algorithm = kenken.get_algorithm(
+            self.MRV_var.get(), self.LCV_var.get(), self.algorithm.get())
+        assignments = algorithm(kenken_puzzel)  # to be modified
+        for assigment in assignments:
+            locations = assigment
+            values = assignments[assigment]
+            # print(list(zip(locations, values)))
+            for location, value in (list(zip(locations, values))):
+                x1, y1, x2, y2 = self.cells[location[0]-1, location[1]-1]
+                center = ((x1+x2)/2), ((y1+y2)/2)
+                self.canvas.create_text(
+                    (center[0], center[1]), text=str(value))
 
     def get_data(self):
         with open('kenken.csv', newline='') as csvfile:
