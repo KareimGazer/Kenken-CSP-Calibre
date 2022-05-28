@@ -1,1 +1,10 @@
 Algorithm Name,Size,Constraint checks,no. of Assignments,Running time
+BT,3,88,6,0.0
+BT,4,714,14,0.0051
+BT,5,6846,49,0.0183
+FC,3,34,4,0.0
+FC,4,152,8,0.0
+FC,5,390,12,0.0
+MAC,3,45,4,0.0
+MAC,4,349,6,0.0052
+MAC,5,1224,10,0.0104

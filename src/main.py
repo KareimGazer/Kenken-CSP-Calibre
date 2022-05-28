@@ -3,7 +3,7 @@ from kenken import *
 
 if __name__ == "__main__":
 
-    gather_info(3, "kenken.csv", 5)
+    # gather_info(3, "kenken.csv", 5)
 
     # you may add the utility to write this as a string into
     # a file to save or load the game

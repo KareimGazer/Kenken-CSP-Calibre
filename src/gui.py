@@ -28,7 +28,7 @@ class SampleApp(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (StartPage, PageOne, Benchmark):
+        for F in (StartPage, Game, Benchmark):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
             self.frames[page_name] = frame
@@ -56,7 +56,7 @@ class StartPage(tk.Frame):
         label.pack(side="top", fill="x", pady=10)
 
         solve_button = tk.Button(self, text="Solve A Puzzle !!!",
-                                 command=lambda: controller.show_frame("PageOne"))
+                                 command=lambda: controller.show_frame("Game"))
         bench_button = tk.Button(self, text="Analyze Performance",
                                  command=lambda: controller.show_frame("Benchmark"))
         solve_button.pack()
