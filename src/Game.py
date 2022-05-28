@@ -18,25 +18,12 @@ class Game(tk.Frame):
         grid_frame.place(height=480, width=1000)
 
         self.width = 450
-        self.rows = 4
-        self.cellwidth = int(self.width / self.rows)
+
         self.canvas = tk.Canvas(
             grid_frame, width=self.width, height=self.width, borderwidth=0, highlightthickness=0)
         self.canvas.pack()
 
-        self.rect = {}
-        self.cells = {}
-        for column in range(self.rows):
-            for row in range(self.rows):
-                x1 = column*self.cellwidth
-                y1 = row * self.cellwidth
-                x2 = x1 + self.cellwidth
-                y2 = y1 + self.cellwidth
-                self.rect[row, column] = self.canvas.create_rectangle(
-                    x1, y1, x2, y2, fill="white", tags="rect", outline='gray')
-                # indexed the same way as kenken
-                self.cells[column, row] = [x1, y1, x2, y2]
-                self.canvas.create_text((x1, y1), text="A")
+        # self.draw_canvas()
 
         # Frame for open file dialog
         control_frame = tk.LabelFrame(self, text="Controls")
@@ -71,9 +58,9 @@ class Game(tk.Frame):
         size_label = ttk.Label(control_frame, text="Max board size")
         size_label.place(rely=0.2, relx=0.5)
 
-        board_size_widget = tk.Entry(control_frame)
-        board_size_widget.place(rely=0.3, relx=0.50)
-        self.board_size = board_size_widget
+        self.board_size_widget = tk.Entry(control_frame)
+        self.board_size_widget.place(rely=0.3, relx=0.50)
+        # self.board_size = int(board_size_widget.get())
 
         # buttons
         return_button = tk.Button(control_frame, text="Go to the start page",
@@ -82,12 +69,29 @@ class Game(tk.Frame):
         return_button.pack()
 
         gen_button = tk.Button(control_frame, text="Generate Board",
-                               command=lambda: self.print_info())
+                               command=lambda: self.draw_canvas())
         gen_button.place(height=50, width=150, rely=0.65, relx=0.15)
 
         sol_button = tk.Button(control_frame, text="Solve Puzzel",
                                command=lambda: self.print_info())
         sol_button.place(height=50, width=150, rely=0.65, relx=0.50)
+
+    def draw_canvas(self):
+        self.rows = int(self.board_size_widget.get())
+        self.cellwidth = int(self.width / self.rows)
+        self.rect = {}
+        self.cells = {}
+        for column in range(self.rows):
+            for row in range(self.rows):
+                x1 = column*self.cellwidth
+                y1 = row * self.cellwidth
+                x2 = x1 + self.cellwidth
+                y2 = y1 + self.cellwidth
+                self.rect[row, column] = self.canvas.create_rectangle(
+                    x1, y1, x2, y2, fill="white", tags="rect", outline='gray')
+                # indexed the same way as kenken
+                self.cells[column, row] = [x1, y1, x2, y2]
+                self.canvas.create_text((x1, y1), text="A")
 
     def get_data(self):
         with open('kenken.csv', newline='') as csvfile:
