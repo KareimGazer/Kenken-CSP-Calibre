@@ -1,12 +1,12 @@
 """CSP (Constraint Satisfaction Problems) some imports are removed"""
 
 from utils import argmin_random_tie, count, first
-import search
+import Problem
 from collections import defaultdict
 from functools import reduce
 
 
-class CSP(search.Problem):
+class CSP(Problem.Problem):
     """This class describes finite-domain Constraint Satisfaction Problems.
     A CSP is specified by the following inputs:
         variables   A list of variables; each is atomic (e.g. int or string).
