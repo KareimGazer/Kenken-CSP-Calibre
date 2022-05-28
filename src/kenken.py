@@ -408,7 +408,44 @@ def assess_performance(kenken, algorithm):
     return kenken.checks, kenken.nassigns, elapsed_time
 
 
-def gather_info(iterations, out_file, max_board_size):
+def configure_algorithms(is_mrv, is_lcv, is_BT, is_FC, is_MAC):
+    unassigned_variable_selection = None
+    domain_values_order = None
+    algorithms = dict()
+
+    if is_mrv:
+        unassigned_variable_selection = csp.mrv
+    else:
+        unassigned_variable_selection = csp.first_unassigned_variable
+    if is_lcv:
+        domain_values_order = csp.lcv
+    else:
+        domain_values_order = csp.unordered_domain_values
+
+    # vannila backtracking
+    if is_BT:
+        def bt(ken): return csp.backtracking_search(ken,
+                                                    select_unassigned_variable=unassigned_variable_selection,
+                                                    order_domain_values=domain_values_order,
+                                                    inference=csp.no_inference)
+        algorithms['BT'] = bt
+
+    if is_FC:
+        # forward checking (backtracking + forward checking)
+        def fc(ken): return csp.backtracking_search(ken, select_unassigned_variable=unassigned_variable_selection,
+                                                    order_domain_values=domain_values_order, inference=csp.forward_checking)
+        algorithms['FC'] = fc
+
+    if is_MAC:
+        # maintain arc consistency (backtracking + arc consistency)
+        def mac(ken): return csp.backtracking_search(ken, select_unassigned_variable=unassigned_variable_selection,
+                                                     order_domain_values=domain_values_order, inference=csp.mac)
+        algorithms['MAC'] = mac
+
+    return algorithms
+
+
+def gather_info(max_board_size, iterations, out_file, algorithms):
     """Benchmark each one of the following algorithms for various kenken puzzles
       * For every one of the following algorithms
        * For every possible size of a kenken board
@@ -421,33 +458,6 @@ def gather_info(iterations, out_file, max_board_size):
           * iterations: number of iterations to average over
           * out_file: the location of the outputfile
           * max_board_size: max board size to run test on"""
-    # getting the functions into vars
-    def bt(ken): return csp.backtracking_search(ken)  # vannila backtracking
-
-    def fc(ken): return csp.backtracking_search(
-        ken, inference=csp.forward_checking)  # forward checking (backtracking + forward checking)
-
-    def mac(ken): return csp.backtracking_search(
-        ken, inference=csp.mac)  # maintain arc consistency (backtracking + arc consistency)
-
-    # may not be used
-    def bt_mrv(ken): return csp.backtracking_search(
-        ken, select_unassigned_variable=csp.mrv)  # minimum remaining value heuristic
-
-    def fc_mrv(ken): return csp.backtracking_search(
-        ken, inference=csp.forward_checking, select_unassigned_variable=csp.mrv)
-
-    # Bonus to be added
-    # use heuristics in backtrack,FC, and MAC
-
-    # storing the functions into a single object
-    algorithms = {
-        "BT": bt,
-        "BT+MRV": bt_mrv,
-        "FC": fc,
-        "FC+MRV": fc_mrv,
-        "MAC": mac
-    }
 
     with open(out_file, "w", newline='') as csvfile:
         out_writer = csv.writer(csvfile)

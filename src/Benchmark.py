@@ -4,6 +4,7 @@ from tkinter import font as tkfont  # python 3
 from tkinter import filedialog, messagebox, ttk
 import csv
 from turtle import width
+import kenken
 
 
 class Benchmark(tk.Frame):
@@ -55,9 +56,9 @@ class Benchmark(tk.Frame):
             control_frame, text="FC", variable=self.FC_var)
         check_FC.place(rely=0.2, relx=0.20)
 
-        self.AC_var = tk.IntVar()
+        self.MAC_var = tk.IntVar()
         check_AC = tk.Checkbutton(
-            control_frame, text="AC", variable=self.AC_var)
+            control_frame, text="AC", variable=self.MAC_var)
         check_AC.place(rely=0.2, relx=0.30)
 
         self.MRV_var = tk.IntVar()
@@ -90,20 +91,17 @@ class Benchmark(tk.Frame):
                                command=lambda: self.print_info())
         run_button.place(height=50, width=150, rely=0.65, relx=0.40)
 
-    def print_info(self):
-        size, iters_num = int(self.board_size.get()), int(
-            self.iters_num.get())
-        print(size, iters_num, self.AC_var.get())
-        self.Load_excel_data()
-
     def get_data(self):
         with open('kenken.csv', newline='') as csvfile:
             data_list = csv.reader(csvfile)
             return list(data_list)
 
+    def clear_data(self):
+        self.tv1.delete(*self.tv1.get_children())
+        return None
+
     def Load_excel_data(self):
         self.clear_data()
-        # run gather info
         data_list = self.get_data()
 
         self.tv1["column"] = data_list[0]
@@ -117,6 +115,15 @@ class Benchmark(tk.Frame):
             self.tv1.insert("", "end", values=row)
         return None
 
-    def clear_data(self):
-        self.tv1.delete(*self.tv1.get_children())
-        return None
+    def print_info(self):
+        size, iters_num = int(self.board_size.get()), int(
+            self.iters_num.get())
+
+        is_mrv, is_lcv = self.MRV_var.get(), self.LCV_var.get()
+        is_BT, is_FC, is_MAC = self.BT_var.get(), self.FC_var.get(), self.MAC_var.get()
+
+        algorithms = kenken.configure_algorithms(
+            is_mrv, is_lcv, is_BT, is_FC, is_MAC)
+        kenken.gather_info(size, iters_num, "kenken.csv", algorithms)
+        print("data ready to be loaded")
+        self.Load_excel_data()
