@@ -16,15 +16,7 @@ class CSP(Problem.Problem):
         constraints A function f(A, a, B, b) that returns true if neighbors
                     A, B satisfy the constraint when they have values A=a, B=b
 
-    In the textbook and in most mathematical definitions, the
-    constraints are specified as explicit pairs of allowable values,
-    but the formulation here is easier to express and more compact for
-    most cases. (For example, the n-Queens problem can be represented
-    in O(n) space using this notation, instead of O(N^4) for the
-    explicit representation.) In terms of describing the CSP as a
-    problem, that's all there is.
-
-    However, the class also supports data structures and methods that help you
+    the class also supports data structures and methods that help you
     solve CSPs by calling a search function on the CSP. Methods and slots are
     as follows, where the argument 'a' represents an assignment, which is a
     dict of {var:val} entries:
